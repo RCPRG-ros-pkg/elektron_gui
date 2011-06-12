@@ -45,7 +45,7 @@ def non_zero(value):
 
 class PowerStateControl(wx.Window):
   def __init__(self, parent, id, icons_path):
-    wx.Window.__init__(self, parent, id, wx.DefaultPosition, wx.Size(60, 32))
+    wx.Window.__init__(self, parent, id, wx.DefaultPosition, wx.Size(60, 50))
 
     self._power_consumption = 0.0
     self._pct = 0
@@ -60,7 +60,7 @@ class PowerStateControl(wx.Window):
     self._yellow = wx.Bitmap(path.join(icons_path, "battery-yellow-bar.png"), wx.BITMAP_TYPE_PNG)
     self._red = wx.Bitmap(path.join(icons_path, "battery-red-bar.png"), wx.BITMAP_TYPE_PNG)
 
-    self.SetSize(wx.Size(self._left_bitmap.GetWidth() + self._right_bitmap.GetWidth() + self._background_bitmap.GetWidth(), 32))
+    self.SetSize(wx.Size(self._left_bitmap.GetWidth() + self._right_bitmap.GetWidth() + self._background_bitmap.GetWidth(), 50))
 
     self._start_x = self._left_bitmap.GetWidth()
     self._end_x = self.GetSize().x - self._right_bitmap.GetWidth()
@@ -101,12 +101,19 @@ class PowerStateControl(wx.Window):
                     (self._start_x + self._width) / 2.0 - (self._plug_bitmap.GetWidth() / 2.0),
                     self.GetSize().GetHeight() / 2.0 - (self._plug_bitmap.GetHeight() / 2.0))
 
+    fnt = dc.GetFont()
+    fnt.SetPointSize(7)
+    dc.SetFont(fnt)
+    dc.DrawText("Current", 0, 32)
+    dc.DrawText(str(self._current), 30, 32)
+
 
   def set_power_state(self, msg):
     last_pct = self._pct
     last_plugged_in = self._plugged_in
     last_time_remaining = self._time_remaining
 
+    self._current = float(msg['Current (A)'])
     self._power_consumption = float(msg['Current (A)'])*float(msg['Voltage (V)'])
     self._time_remaining = 0.9*self._time_remaining + 0.1*(float(msg['Charge (Ah)'])/non_zero(float(msg['Current (A)'])))*60.0
     self._pct = float(msg['Charge (Ah)'])/float(msg['Capacity (Ah)'])
@@ -120,6 +127,7 @@ class PowerStateControl(wx.Window):
     self.Refresh()
 
   def set_stale(self):
+    self._current = 0.0
     self._plugged_in = 0
     self._pct = 0
     self._time_remaining = 0.0
