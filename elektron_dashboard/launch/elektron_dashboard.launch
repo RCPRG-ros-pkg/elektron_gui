@@ -1,0 +1,7 @@
+<launch>
+  <node pkg="elektron_dashboard" type="elektron_dashboard" name="elektron_dashboard" output="screen"/>
+
+  <node pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator" >
+    <rosparam command="load" file="$(find elektron_dashboard)/config/diagnostics.yaml" />
+  </node>
+</launch>
