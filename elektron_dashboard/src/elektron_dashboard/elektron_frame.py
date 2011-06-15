@@ -56,6 +56,7 @@ import threading
 #from breaker_control import BreakerControl
 #from status_control import StatusControl
 from power_state_control import PowerStateControl
+from wifi_control import WifiControl
 #from diagnostics_frame import DiagnosticsFrame
 #from rosout_frame import RosoutFrame
 
@@ -134,6 +135,13 @@ class ElektronFrame(wx.Frame):
         #~ self._power_state_ctrl.SetToolTip(wx.ToolTip("Battery: Stale"))
         #~ static_sizer.Add(self._power_state_ctrl, 1, wx.EXPAND)
 
+        static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "WiFi"), wx.HORIZONTAL)
+        sizer.Add(static_sizer, 0)
+        # WiFi State
+        self._wifi_state = WifiControl(self, wx.ID_ANY, icons_path)
+        self._wifi_state.SetToolTip(wx.ToolTip("WiFi: Stale"))
+        static_sizer.Add(self._wifi_state, 1, wx.EXPAND)
+        
         static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Laptop"), wx.HORIZONTAL)
         sizer.Add(static_sizer, 0)
         # Laptop Battery State
@@ -254,6 +262,7 @@ class ElektronFrame(wx.Frame):
       battery_status = {}
       laptop_battery_status = {}
       breaker_status = {}
+      wifi_status = {}
       op_mode = None
       for status in msg.status:
           if status.name == "/Power System/Battery":
@@ -269,6 +278,9 @@ class ElektronFrame(wx.Frame):
           if status.name == "/Digital IO/Digital Outputs":
               for value in status.values:
                   breaker_status[value.key]=value.value
+          if status.name == "/Network/eth1":
+              for value in status.values:
+                  wifi_status[value.key]=value.value
 
       #~ if (battery_status):
         #~ self._power_state_ctrl.set_power_state(battery_status)
@@ -279,6 +291,11 @@ class ElektronFrame(wx.Frame):
         self._power_state_ctrl_laptop.set_power_state(laptop_battery_status)
       else:
         self._power_state_ctrl_laptop.set_stale()
+        
+      if (wifi_status):
+        self._wifi_state.set_wifi_state(wifi_status)
+      else:
+        self._wifi_state.set_stale()
 
       #~ if (op_mode):
         #~ if (op_mode=='Full'):

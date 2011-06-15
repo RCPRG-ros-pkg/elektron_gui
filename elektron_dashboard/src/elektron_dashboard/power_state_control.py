@@ -98,14 +98,13 @@ class PowerStateControl(wx.Window):
 
     if (self._plugged_in):
       dc.DrawBitmap(self._plug_bitmap,
-                    (self._start_x + self._width) / 2.0 - (self._plug_bitmap.GetWidth() / 2.0),
-                    self.GetSize().GetHeight() / 2.0 - (self._plug_bitmap.GetHeight() / 2.0))
+                    (self._start_x + self._width) / 2.0 - (self._plug_bitmap.GetWidth() / 2.0), 10)
 
     fnt = dc.GetFont()
     fnt.SetPointSize(7)
     dc.SetFont(fnt)
-    dc.DrawText("Current", 0, 32)
-    dc.DrawText(str(self._current), 30, 32)
+    dc.DrawText("PWR Cons.", 0, 32)
+    dc.DrawText('%1.3f W' % self._power_consumption, 60, 32)
 
 
   def set_power_state(self, msg):
