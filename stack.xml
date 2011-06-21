@@ -1,0 +1,13 @@
+<stack>
+  <description brief="elektron_gui">elektron_gui</description>
+  <author></author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/elektron_gui</url>
+  <depend stack="diagnostics_monitors" /> <!-- robot_monitor -->
+  <depend stack="elektron_robot" /> <!-- elektron_base -->
+  <depend stack="ros" /> <!-- roslib -->
+  <depend stack="ros_comm" /> <!-- std_srvs, std_msgs, rospy -->
+  <depend stack="rx" /> <!-- rxtools -->
+
+</stack>
