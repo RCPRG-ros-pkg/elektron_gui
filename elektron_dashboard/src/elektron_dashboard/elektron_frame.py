@@ -54,47 +54,47 @@ from os import path
 import threading
 
 #from breaker_control import BreakerControl
-#from status_control import StatusControl
+from status_control import StatusControl
 from power_state_control import PowerStateControl
 from wifi_control import WifiControl
-#from diagnostics_frame import DiagnosticsFrame
-#from rosout_frame import RosoutFrame
+from diagnostics_frame import DiagnosticsFrame
+from rosout_frame import RosoutFrame
 
 class ElektronFrame(wx.Frame):
-    _CONFIG_WINDOW_X="/Window/X"
-    _CONFIG_WINDOW_Y="/Window/Y"
+    _CONFIG_WINDOW_X = "/Window/X"
+    _CONFIG_WINDOW_Y = "/Window/Y"
 
-    def __init__(self, parent, id=wx.ID_ANY, title='Elektron Dashboard', pos=wx.DefaultPosition, size=(400, 50), style=wx.CAPTION|wx.CLOSE_BOX|wx.STAY_ON_TOP):
+    def __init__(self, parent, id=wx.ID_ANY, title='Elektron Dashboard', pos=wx.DefaultPosition, size=(400, 50), style=wx.CAPTION | wx.CLOSE_BOX | wx.STAY_ON_TOP):
         wx.Frame.__init__(self, parent, id, title, pos, size, style)
 
         wx.InitAllImageHandlers()
 
         rospy.init_node('elektron_dashboard', anonymous=True)
-        #~ try:
-            #~ getattr(rxtools, "initRoscpp")
-            #~ rxtools.initRoscpp("elektron_dashboard_cpp", anonymous=True)
-        #~ except AttributeError:
-            #~ pass
+        try:
+            getattr(rxtools, "initRoscpp")
+            rxtools.initRoscpp("elektron_dashboard_cpp", anonymous=True)
+        except AttributeError:
+            pass
 
-        self.SetTitle('Elektron Dashboard (%s)'%rosenv.get_master_uri())
+        self.SetTitle('Elektron Dashboard (%s)' % rosenv.get_master_uri())
 
         icons_path = path.join(roslib.packages.get_pkg_dir('elektron_dashboard'), "icons/")
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(sizer)
 
-        #~ static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Diagnostic"), wx.HORIZONTAL)
-        #~ sizer.Add(static_sizer, 0)
+        static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Diagnostic"), wx.HORIZONTAL)
+        sizer.Add(static_sizer, 0)
         
-        #~ # Diagnostics
-        #~ self._diagnostics_button = StatusControl(self, wx.ID_ANY, icons_path, "diag", True)
-        #~ self._diagnostics_button.SetToolTip(wx.ToolTip("Diagnostics"))
-        #~ static_sizer.Add(self._diagnostics_button, 0)
-#~
-        #~ # Rosout
-        #~ self._rosout_button = StatusControl(self, wx.ID_ANY, icons_path, "rosout", True)
-        #~ self._rosout_button.SetToolTip(wx.ToolTip("Rosout"))
-        #~ static_sizer.Add(self._rosout_button, 0)
+        # Diagnostics
+        self._diagnostics_button = StatusControl(self, wx.ID_ANY, icons_path, "diag", True)
+        self._diagnostics_button.SetToolTip(wx.ToolTip("Diagnostics"))
+        static_sizer.Add(self._diagnostics_button, 0)
+
+        # Rosout
+        self._rosout_button = StatusControl(self, wx.ID_ANY, icons_path, "rosout", True)
+        self._rosout_button.SetToolTip(wx.ToolTip("Rosout"))
+        static_sizer.Add(self._rosout_button, 0)
 #~
         #~ # Motors
         #~ self._motors_button = StatusControl(self, wx.ID_ANY, icons_path, "motor", True)
@@ -137,7 +137,7 @@ class ElektronFrame(wx.Frame):
 
         # WiFi State
         self.wlan_interface = rospy.get_param('~wlan_interface', 'eth1')
-        self.wlan_power = rospy.get_param('~wlan_power',100)
+        self.wlan_power = rospy.get_param('~wlan_power', 100)
         
         static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "WiFi: %s" % self.wlan_interface), wx.HORIZONTAL)
         sizer.Add(static_sizer, 0)
@@ -162,15 +162,15 @@ class ElektronFrame(wx.Frame):
         self.Layout()
         self.Fit()
 
-        #~ self._diagnostics_frame = DiagnosticsFrame(self, wx.ID_ANY, "Diagnostics")
-        #~ self._diagnostics_frame.Hide()
-        #~ self._diagnostics_frame.Center()
-        #~ self._diagnostics_button.Bind(wx.EVT_BUTTON, self.on_diagnostics_clicked)
-#~
-        #~ self._rosout_frame = RosoutFrame(self, wx.ID_ANY, "Rosout")
-        #~ self._rosout_frame.Hide()
-        #~ self._rosout_frame.Center()
-        #~ self._rosout_button.Bind(wx.EVT_BUTTON, self.on_rosout_clicked)
+        self._diagnostics_frame = DiagnosticsFrame(self, wx.ID_ANY, "Diagnostics")
+        self._diagnostics_frame.Hide()
+        self._diagnostics_frame.Center()
+        self._diagnostics_button.Bind(wx.EVT_BUTTON, self.on_diagnostics_clicked)
+
+        self._rosout_frame = RosoutFrame(self, wx.ID_ANY, "Rosout")
+        self._rosout_frame.Hide()
+        self._rosout_frame.Center()
+        self._rosout_button.Bind(wx.EVT_BUTTON, self.on_rosout_clicked)
 
         self.load_config()
 
@@ -187,19 +187,19 @@ class ElektronFrame(wx.Frame):
         #~ self._dashboard_agg_sub.unregister()
 
     def on_timer(self, evt):
-      #~ level = self._diagnostics_frame._diagnostics_panel.get_top_level_state()
-      #~ if (level == -1 or level == 3):
-        #~ if (self._diagnostics_button.set_stale()):
-            #~ self._diagnostics_button.SetToolTip(wx.ToolTip("Diagnostics: Stale"))
-      #~ elif (level >= 2):
-        #~ if (self._diagnostics_button.set_error()):
-            #~ self._diagnostics_button.SetToolTip(wx.ToolTip("Diagnostics: Error"))
-      #~ elif (level == 1):
-        #~ if (self._diagnostics_button.set_warn()):
-            #~ self._diagnostics_button.SetToolTip(wx.ToolTip("Diagnostics: Warning"))
-      #~ else:
-        #~ if (self._diagnostics_button.set_ok()):
-            #~ self._diagnostics_button.SetToolTip(wx.ToolTip("Diagnostics: OK"))
+      level = self._diagnostics_frame._diagnostics_panel.get_top_level_state()
+      if (level == -1 or level == 3):
+         if (self._diagnostics_button.set_stale()):
+            self._diagnostics_button.SetToolTip(wx.ToolTip("Diagnostics: Stale"))
+      elif (level >= 2):
+         if (self._diagnostics_button.set_error()):
+            self._diagnostics_button.SetToolTip(wx.ToolTip("Diagnostics: Error"))
+      elif (level == 1):
+         if (self._diagnostics_button.set_warn()):
+            self._diagnostics_button.SetToolTip(wx.ToolTip("Diagnostics: Warning"))
+      else:
+         if (self._diagnostics_button.set_ok()):
+            self._diagnostics_button.SetToolTip(wx.ToolTip("Diagnostics: OK"))
 
       self.update_rosout()
 
@@ -218,14 +218,14 @@ class ElektronFrame(wx.Frame):
       if (rospy.is_shutdown()):
         self.Close()
 
-    #~ def on_diagnostics_clicked(self, evt):
-      #~ self._diagnostics_frame.Show()
-      #~ self._diagnostics_frame.Raise()
-#~
-    #~ def on_rosout_clicked(self, evt):
-      #~ self._rosout_frame.Show()
-      #~ self._rosout_frame.Raise()
-#~
+    def on_diagnostics_clicked(self, evt):
+        self._diagnostics_frame.Show()
+        self._diagnostics_frame.Raise()
+
+    def on_rosout_clicked(self, evt):
+        self._rosout_frame.Show()
+        self._rosout_frame.Raise()
+
     #~ def on_motors_clicked(self, evt):
       #~ menu = wx.Menu()
       #~ menu.Bind(wx.EVT_MENU, self.on_passive_mode, menu.Append(wx.ID_ANY, "Passive Mode"))
@@ -273,20 +273,20 @@ class ElektronFrame(wx.Frame):
       for status in msg.status:
           if status.name == "/Power System/Battery":
               for value in status.values:
-                  battery_status[value.key]=value.value
+                  battery_status[value.key] = value.value
           if status.name == "/Power System/Laptop Battery":
               for value in status.values:
-                  laptop_battery_status[value.key]=value.value
+                  laptop_battery_status[value.key] = value.value
               if status.message == "Stale":
                   laptop_battery_status = {}
           if status.name == "/Mode/Operating Mode":
-              op_mode=status.message
+              op_mode = status.message
           if status.name == "/Digital IO/Digital Outputs":
               for value in status.values:
-                  breaker_status[value.key]=value.value
-          if status.name == "/Network/%s"%self.wlan_interface:
+                  breaker_status[value.key] = value.value
+          if status.name == "/Network/%s" % self.wlan_interface:
               for value in status.values:
-                  wifi_status[value.key]=value.value
+                  wifi_status[value.key] = value.value
 
       #~ if (battery_status):
         #~ self._power_state_ctrl.set_power_state(battery_status)
@@ -322,42 +322,43 @@ class ElektronFrame(wx.Frame):
 
 
     def update_rosout(self):
-      summary_dur = 30.0
-      #~ if (rospy.get_time() < 30.0):
-          #~ summary_dur = rospy.get_time() - 1.0
-#~
-      #~ if (summary_dur < 0):
-          #~ summary_dur = 0.0
-#~
-      #~ summary = self._rosout_frame.get_panel().getMessageSummary(summary_dur)
-#~
-      #~ if (summary.fatal or summary.error):
-        #~ self._rosout_button.set_error()
-      #~ elif (summary.warn):
-        #~ self._rosout_button.set_warn()
-      #~ else:
-        #~ self._rosout_button.set_ok()
-#~
-#~
-      #~ tooltip = ""
-      #~ if (summary.fatal):
-        #~ tooltip += "\nFatal: %s"%(summary.fatal)
-      #~ if (summary.error):
-        #~ tooltip += "\nError: %s"%(summary.error)
-      #~ if (summary.warn):
-        #~ tooltip += "\nWarn: %s"%(summary.warn)
-      #~ if (summary.info):
-        #~ tooltip += "\nInfo: %s"%(summary.info)
-      #~ if (summary.debug):
-        #~ tooltip += "\nDebug: %s"%(summary.debug)
-#~
-      #~ if (len(tooltip) == 0):
-        #~ tooltip = "Rosout: no recent activity"
-      #~ else:
-        #~ tooltip = "Rosout: recent activity:" + tooltip
-#~
-      #~ if (tooltip != self._rosout_button.GetToolTip().GetTip()):
-          #~ self._rosout_button.SetToolTip(wx.ToolTip(tooltip))
+        summary_dur = 30.0
+        if (rospy.get_time() < 30.0):
+            summary_dur = rospy.get_time() - 1.0
+
+        if (summary_dur < 0):
+            summary_dur = 0.0
+
+        summary = self._rosout_frame.get_panel().getMessageSummary(summary_dur)
+
+        if (summary.fatal or summary.error):
+            self._rosout_button.set_error()
+        elif (summary.warn):
+            self._rosout_button.set_warn()
+        else:
+            self._rosout_button.set_ok()
+
+        tooltip = ""
+        if (summary.fatal):
+            tooltip += "\nFatal: %s"%(summary.fatal)
+        if (summary.error):
+            tooltip += "\nError: %s"%(summary.error)
+        if (summary.warn):
+            tooltip += "\nWarn: %s"%(summary.warn)
+        if (summary.info):
+            tooltip += "\nInfo: %s"%(summary.info)
+        if (summary.debug):
+            tooltip += "\nDebug: %s"%(summary.debug)
+        
+        if (len(tooltip) == 0):
+            tooltip = "Rosout: no recent activity"
+        else:
+            tooltip = "Rosout: recent activity:" + tooltip
+        
+        if (tooltip != self._rosout_button.GetToolTip().GetTip()):
+            self._rosout_button.SetToolTip(wx.ToolTip(tooltip))
+
+
 
     def load_config(self):
       # Load our window options
@@ -370,6 +371,8 @@ class ElektronFrame(wx.Frame):
 
       self.SetPosition((x, y))
       self.SetSize((width, height))
+
+
 
     def save_config(self):
       config = self._config

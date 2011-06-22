@@ -40,26 +40,18 @@ from os import path
 class StatusControl(wx.Window):
   def __init__(self, parent, id, icons_path, base_name, toggleable):
     wx.Window.__init__(self, parent, id)
-    self.SetSize(wx.Size(32, 32))
+    self.SetSize(wx.Size(40, 40))
     
-    if (toggleable):
-      self._ok = (wx.Bitmap(path.join(icons_path, "%s-green-untoggled.png"%(base_name)), wx.BITMAP_TYPE_PNG), 
-                  wx.Bitmap(path.join(icons_path, "%s-green-toggled.png"%(base_name)), wx.BITMAP_TYPE_PNG))
-      self._warn = (wx.Bitmap(path.join(icons_path, "%s-yellow-untoggled.png"%(base_name)), wx.BITMAP_TYPE_PNG), 
-                    wx.Bitmap(path.join(icons_path, "%s-yellow-toggled.png"%(base_name)), wx.BITMAP_TYPE_PNG))
-      self._error = (wx.Bitmap(path.join(icons_path, "%s-red-untoggled.png"%(base_name)), wx.BITMAP_TYPE_PNG), 
-                   wx.Bitmap(path.join(icons_path, "%s-red-toggled.png"%(base_name)), wx.BITMAP_TYPE_PNG))
-      self._stale = (wx.Bitmap(path.join(icons_path, "%s-grey-untoggled.png"%(base_name)), wx.BITMAP_TYPE_PNG), 
-                     wx.Bitmap(path.join(icons_path, "%s-grey-toggled.png"%(base_name)), wx.BITMAP_TYPE_PNG))
-    else:
-      ok = wx.Bitmap(path.join(icons_path, "%s-green.png"%(base_name)), wx.BITMAP_TYPE_PNG)
-      warn = wx.Bitmap(path.join(icons_path, "%s-yellow.png"%(base_name)), wx.BITMAP_TYPE_PNG)
-      error = wx.Bitmap(path.join(icons_path, "%s-red.png"%(base_name)), wx.BITMAP_TYPE_PNG)
-      stale = wx.Bitmap(path.join(icons_path, "%s-grey.png"%(base_name)), wx.BITMAP_TYPE_PNG)
-      self._ok = (ok, ok)
-      self._warn = (warn, warn)
-      self._error = (error, error)
-      self._stale = (stale, stale)
+    base_bitmap = wx.Bitmap(path.join(icons_path, "%s.png"%(base_name)), wx.BITMAP_TYPE_PNG);
+    
+    self._ok    = (base_bitmap.GetSubBitmap(wx.Rect( 40,  0, 40, 40)),
+                   base_bitmap.GetSubBitmap(wx.Rect( 40, 40, 40, 40)))
+    self._warn  = (base_bitmap.GetSubBitmap(wx.Rect(  0,  0, 40, 40)),
+                   base_bitmap.GetSubBitmap(wx.Rect(  0, 40, 40, 40)))
+    self._error = (base_bitmap.GetSubBitmap(wx.Rect( 80,  0, 40, 40)),
+                   base_bitmap.GetSubBitmap(wx.Rect( 80, 40, 40, 40)))
+    self._stale = (base_bitmap.GetSubBitmap(wx.Rect(120,  0, 40, 40)),
+                   base_bitmap.GetSubBitmap(wx.Rect(120, 40, 40, 40)))
     
     self._color = None
     self.set_stale()
