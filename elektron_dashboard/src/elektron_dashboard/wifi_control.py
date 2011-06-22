@@ -37,21 +37,17 @@ import wx
 
 from os import path
 
-def non_zero(value):
-  if value < 0.00001 and value > -0.00001:
-    return 0.00001
-  return value
-
-
 class WifiControl(wx.Window):
-  def __init__(self, parent, id, icons_path):
+  def __init__(self, parent, id, icons_path, wlan_interface, wlan_power):
     wx.Window.__init__(self, parent, id, wx.DefaultPosition, wx.Size(60, 50))
 
     self._base_bitmap = wx.Bitmap(path.join(icons_path, "wifi_bars.png"), wx.BITMAP_TYPE_PNG)
+    self._off_bitmap = wx.Bitmap(path.join(icons_path, "wifi_off.png"), wx.BITMAP_TYPE_PNG)
     self._bar_bitmap = wx.Bitmap(path.join(icons_path, "bar_on.png"), wx.BITMAP_TYPE_PNG)
 
     self._signal_power = 3
-    self._max_signal_power = 5
+    self._max_signal_power = wlan_power
+    self.ip = "not connected"
 
     self.SetSize(wx.Size(self._base_bitmap.GetWidth(), 50))
 
@@ -66,24 +62,31 @@ class WifiControl(wx.Window):
     w = self.GetSize().GetWidth()
     h = self._base_bitmap.GetHeight()
 
-    dc.DrawBitmap(self._base_bitmap, 0, 0, True)
-
-    bars = 5 * self._signal_power / self._max_signal_power
+    if (self.ip == "not connected"):
+        dc.DrawBitmap(self._off_bitmap, 0, 0, True)
+    else:
+        dc.DrawBitmap(self._base_bitmap, 0, 0, True)
     
-    for i in range(bars):
-        dc.DrawBitmap(self._bar_bitmap, 36 + i * self._bar_bitmap.GetWidth(), 1, True)
+        bars = 5 * self._signal_power / self._max_signal_power
+        
+        for i in range(bars):
+            dc.DrawBitmap(self._bar_bitmap, 36 + i * self._bar_bitmap.GetWidth(), 1, True)
 
     fnt = dc.GetFont()
     fnt.SetPointSize(7)
     dc.SetFont(fnt)
-   # dc.DrawText("PWR Cons.", 0, 32)
-   # dc.DrawText('%1.3f W' % self._power_consumption, 60, 32)
+    dc.DrawText("IP:", 0, 32)
+    dc.DrawText('%s' % self.ip, 30, 32)
 
 
   def set_wifi_state(self, msg):
     self._signal_power = float(msg["Quality"])
-
-    self.SetToolTip(wx.ToolTip("Quality: %.2f%%"%(self._signal_power)))
+    self.ip = msg["IP"] 
+    if (self.ip == "not connected"):
+        self.SetToolTip(wx.ToolTip("Not connected"))
+    else:
+        self.SetToolTip(wx.ToolTip("Quality: %.2f%%"%(self._signal_power)))
+    
     self.Refresh()
 
   def set_stale(self):

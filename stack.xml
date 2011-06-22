@@ -1,6 +1,6 @@
 <stack>
-  <description brief="elektron_gui">elektron_gui</description>
-  <author></author>
+  <description brief="elektron_gui">Some graphical tools for Elektron mobile robot.</description>
+  <author>Maciej Stefańczyk</author>
   <license>BSD</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/elektron_gui</url>

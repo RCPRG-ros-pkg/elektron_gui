@@ -85,7 +85,7 @@ class ElektronFrame(wx.Frame):
 
         #~ static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Diagnostic"), wx.HORIZONTAL)
         #~ sizer.Add(static_sizer, 0)
-
+        
         #~ # Diagnostics
         #~ self._diagnostics_button = StatusControl(self, wx.ID_ANY, icons_path, "diag", True)
         #~ self._diagnostics_button.SetToolTip(wx.ToolTip("Diagnostics"))
@@ -135,16 +135,22 @@ class ElektronFrame(wx.Frame):
         #~ self._power_state_ctrl.SetToolTip(wx.ToolTip("Battery: Stale"))
         #~ static_sizer.Add(self._power_state_ctrl, 1, wx.EXPAND)
 
-        static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "WiFi"), wx.HORIZONTAL)
-        sizer.Add(static_sizer, 0)
         # WiFi State
-        self._wifi_state = WifiControl(self, wx.ID_ANY, icons_path)
+        self.wlan_interface = rospy.get_param('~wlan_interface', 'eth1')
+        self.wlan_power = rospy.get_param('~wlan_power',100)
+        
+        static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "WiFi: %s" % self.wlan_interface), wx.HORIZONTAL)
+        sizer.Add(static_sizer, 0)
+        
+        
+        self._wifi_state = WifiControl(self, wx.ID_ANY, icons_path, self.wlan_interface, self.wlan_power)
         self._wifi_state.SetToolTip(wx.ToolTip("WiFi: Stale"))
         static_sizer.Add(self._wifi_state, 1, wx.EXPAND)
         
+        # Laptop Battery State
         static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Laptop"), wx.HORIZONTAL)
         sizer.Add(static_sizer, 0)
-        # Laptop Battery State
+        
         self._power_state_ctrl_laptop = PowerStateControl(self, wx.ID_ANY, icons_path)
         self._power_state_ctrl_laptop.SetToolTip(wx.ToolTip("Laptop Battery: Stale"))
         static_sizer.Add(self._power_state_ctrl_laptop, 1, wx.EXPAND)
@@ -278,7 +284,7 @@ class ElektronFrame(wx.Frame):
           if status.name == "/Digital IO/Digital Outputs":
               for value in status.values:
                   breaker_status[value.key]=value.value
-          if status.name == "/Network/eth1":
+          if status.name == "/Network/%s"%self.wlan_interface:
               for value in status.values:
                   wifi_status[value.key]=value.value
 
