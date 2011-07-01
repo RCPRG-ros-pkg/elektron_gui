@@ -323,11 +323,11 @@ class ElektronFrame(wx.Frame):
 
     def update_rosout(self):
         summary_dur = 30.0
-        if (rospy.get_time() < 30.0):
-            summary_dur = rospy.get_time() - 1.0
+        #if (rospy.get_time() < 30.0):
+        #    summary_dur = rospy.get_time() - 1.0
 
-        if (summary_dur < 0):
-            summary_dur = 0.0
+        #if (summary_dur < 0):
+        #    summary_dur = 0.0
 
         summary = self._rosout_frame.get_panel().getMessageSummary(summary_dur)
 
