@@ -1,3 +1,6 @@
 <launch>
-	<node pkg="elektron_dashboard" type="elektron_dashboard" name="elektron_dashboard" output="screen"/>
+	<node pkg="elektron_dashboard" type="elektron_dashboard" name="elektron_dashboard" output="screen">
+		<param name="wlan_interface" type="string" value="wlan0"/>
+		<param name="wlan_power" type="int" value="100"/>	
+	</node>
 </launch>
