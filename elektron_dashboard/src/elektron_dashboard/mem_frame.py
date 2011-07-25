@@ -37,19 +37,27 @@ import wx
 
 from os import path
 
-class WifiControl(wx.Window):
-  def __init__(self, parent, id, icons_path, wlan_interface, wlan_power):
-    wx.Window.__init__(self, parent, id, wx.DefaultPosition, wx.Size(60, 50))
+def non_zero(value):
+  if value < 0.00001 and value > -0.00001:
+    return 0.00001
+  return value
 
-    self._base_bitmap = wx.Bitmap(path.join(icons_path, "wifi_bars.png"), wx.BITMAP_TYPE_PNG)
-    self._off_bitmap = wx.Bitmap(path.join(icons_path, "wifi_off.png"), wx.BITMAP_TYPE_PNG)
-    self._bar_bitmap = wx.Bitmap(path.join(icons_path, "bar_on.png"), wx.BITMAP_TYPE_PNG)
 
-    self._signal_power = 3
-    self._max_signal_power = wlan_power
-    self.ip = "not connected"
+class MemFrame(wx.Window):
+  def __init__(self, parent, id):
+    wx.Window.__init__(self, parent, id, wx.DefaultPosition, wx.Size(82, 32))
 
-    self.SetSize(wx.Size(self._base_bitmap.GetWidth(), 50))
+    self._total = 1.0
+    self._used = 0.0
+    self._shared = 0.0
+    self._cached = 0.0
+    self._buffers = 0.0
+    
+    self._buf_size = 40
+    
+    #self._buffer = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    self._buffer = [0.0] * self._buf_size
+    self._cnt = 0
 
     self.Bind(wx.EVT_PAINT, self.on_paint)
 
@@ -60,37 +68,60 @@ class WifiControl(wx.Window):
     dc.Clear()
 
     w = self.GetSize().GetWidth()
-    h = self._base_bitmap.GetHeight()
 
-    if (self.ip == "not connected"):
-        dc.DrawBitmap(self._off_bitmap, 0, 0, True)
-    else:
-        dc.DrawBitmap(self._base_bitmap, 0, 0, True)
+    br_black = wx.Brush(wx.Colour(0, 0, 0, 255))
+    br_white = wx.Brush(wx.Colour(255, 255, 255, 255))
     
-        bars = int(5 * self._signal_power / self._max_signal_power)
-        
-        for i in range(bars):
-            dc.DrawBitmap(self._bar_bitmap, 36 + i * self._bar_bitmap.GetWidth(), 1, True)
+    pen_black = wx.Pen(wx.Colour(0, 0, 0, 255))
+    pen_white = wx.Pen(wx.Colour(255, 255, 255, 255))
+    
+    dc.SetBrush(br_black)
+    
+    dc.DrawRectangle(0, 0, w, 32)
+    
+    dc.SetBrush(br_white)
+    dc.SetPen(pen_white)
+
+    w_step = (w - 2) / self._buf_size
+    for i in range(self._buf_size):
+        id = (self._cnt + i) % self._buf_size
+        us = int(self._buffer[id])
+        r = 0
+        g = 0
+        if (us <= 50):
+            g = 255
+            r = int(us*5.1)
+        else:
+            r = 255
+            g = 255 - int((us-50)*5.1)
+        dc.SetPen(wx.Pen(wx.Colour(r, g, 0, 255)))
+        dc.SetBrush(wx.Brush(wx.Colour(r, g, 0, 255)))
+        dc.DrawRectangle(1 + i*w_step, 31, w_step, -us * 0.3)
 
     fnt = dc.GetFont()
+    fnt.SetFamily(wx.FONTFAMILY_MODERN)
+    fnt.SetFaceName("FreeMono")
+    fnt.SetWeight(wx.FONTWEIGHT_BOLD)
     fnt.SetPointSize(7)
+    
     dc.SetFont(fnt)
-    dc.DrawText("IP:", 0, 32)
-    dc.DrawText('%s' % self.ip, 30, 32)
+    dc.SetTextForeground(wx.Colour(0, 0, 0, 255))
+    dc.DrawText('%3.0f%%   %4.0fMB' % (100 * self._used / self._total, self._total), 2, 2)
+    dc.SetTextForeground(wx.Colour(255, 255, 255, 255))
+    dc.DrawText('%3.0f%%   %4.0fMB' % (100 * self._used / self._total, self._total), 1, 1)
 
 
-  def set_wifi_state(self, msg):
-    self._signal_power = float(msg["Quality"])
-    self.ip = msg["IP"] 
-    if (self.ip == "not connected"):
-        self.SetToolTip(wx.ToolTip("Not connected"))
-    else:
-        self.SetToolTip(wx.ToolTip("Quality: %.2f%%"%(self._signal_power)))
+  def set_state(self, msg):
+    self._total = float(msg['total'])
+    self._used = float(msg['used'])
+    
+    self._buffer[self._cnt] = 100 * self._used / self._total
+    self._cnt = (self._cnt + 1) % self._buf_size
     
     self.Refresh()
 
   def set_stale(self):
-    self._signal_power = 0
-    self.SetToolTip(wx.ToolTip("WiFi: Stale"))
-
+    self._cur_freq = 0.0
+    self._max_freq = 0.0
+    self._usage = 0.0
     self.Refresh()

@@ -1,7 +1,7 @@
 <package>
   <description brief="elektron_dashboard">
 
-     elektron_dashboard
+     Dashboard for monitoring Elektron robot, both it's computer and internals.
 
   </description>
   <author>Maciej Stefańczyk</author>

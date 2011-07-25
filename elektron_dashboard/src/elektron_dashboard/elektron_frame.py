@@ -60,6 +60,7 @@ from wifi_control import WifiControl
 from diagnostics_frame import DiagnosticsFrame
 from rosout_frame import RosoutFrame
 from cpu_frame import CpuFrame
+from mem_frame import MemFrame
 
 class ElektronFrame(wx.Frame):
     _CONFIG_WINDOW_X = "/Window/X"
@@ -147,6 +148,12 @@ class ElektronFrame(wx.Frame):
         
         self._cpu1_state = CpuFrame(self, wx.ID_ANY)
         static_sizer.Add(self._cpu1_state, 1, wx.EXPAND)
+        
+        static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Memory"), wx.HORIZONTAL)
+        sizer.Add(static_sizer, 0)
+        
+        self._mem_state = MemFrame(self, wx.ID_ANY)
+        static_sizer.Add(self._mem_state, 1, wx.EXPAND)
 
 
         # WiFi State
@@ -285,6 +292,7 @@ class ElektronFrame(wx.Frame):
       wifi_status = {}
       cpu0_status = {}
       cpu1_status = {}
+      mem_status = {}
       op_mode = None
       for status in msg.status:
           if status.name == "/Power System/Battery":
@@ -303,12 +311,15 @@ class ElektronFrame(wx.Frame):
           if status.name == "/Network/%s" % self.wlan_interface:
               for value in status.values:
                   wifi_status[value.key] = value.value
-          if status.name == "/CPU/cpu0":
+          if status.name == "/System/cpu0":
               for value in status.values:
                   cpu0_status[value.key] = value.value
-          if status.name == "/CPU/cpu1":
+          if status.name == "/System/cpu1":
               for value in status.values:
                   cpu1_status[value.key] = value.value
+          if status.name == "/System/Memory":
+              for value in status.values:
+                  mem_status[value.key] = value.value
 
       #~ if (battery_status):
         #~ self._power_state_ctrl.set_power_state(battery_status)
@@ -325,7 +336,10 @@ class ElektronFrame(wx.Frame):
       
       if (cpu1_status):
         self._cpu1_state.set_state(cpu1_status)
-        
+
+      if (mem_status):
+        self._mem_state.set_state(mem_status)
+                
       if (wifi_status):
         self._wifi_state.set_wifi_state(wifi_status)
       else:
