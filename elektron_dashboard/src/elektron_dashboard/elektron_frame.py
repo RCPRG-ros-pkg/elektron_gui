@@ -59,6 +59,7 @@ from power_state_control import PowerStateControl
 from wifi_control import WifiControl
 from diagnostics_frame import DiagnosticsFrame
 from rosout_frame import RosoutFrame
+from cpu_frame import CpuFrame
 
 class ElektronFrame(wx.Frame):
     _CONFIG_WINDOW_X = "/Window/X"
@@ -134,6 +135,19 @@ class ElektronFrame(wx.Frame):
         #~ self._power_state_ctrl = PowerStateControl(self, wx.ID_ANY, icons_path)
         #~ self._power_state_ctrl.SetToolTip(wx.ToolTip("Battery: Stale"))
         #~ static_sizer.Add(self._power_state_ctrl, 1, wx.EXPAND)
+
+        static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "CPU0"), wx.HORIZONTAL)
+        sizer.Add(static_sizer, 0)
+        
+        self._cpu0_state = CpuFrame(self, wx.ID_ANY)
+        static_sizer.Add(self._cpu0_state, 1, wx.EXPAND)
+        
+        static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "CPU1"), wx.HORIZONTAL)
+        sizer.Add(static_sizer, 0)
+        
+        self._cpu1_state = CpuFrame(self, wx.ID_ANY)
+        static_sizer.Add(self._cpu1_state, 1, wx.EXPAND)
+
 
         # WiFi State
         self.wlan_interface = rospy.get_param('~wlan_interface', 'eth1')
@@ -269,6 +283,8 @@ class ElektronFrame(wx.Frame):
       laptop_battery_status = {}
       breaker_status = {}
       wifi_status = {}
+      cpu0_status = {}
+      cpu1_status = {}
       op_mode = None
       for status in msg.status:
           if status.name == "/Power System/Battery":
@@ -287,6 +303,12 @@ class ElektronFrame(wx.Frame):
           if status.name == "/Network/%s" % self.wlan_interface:
               for value in status.values:
                   wifi_status[value.key] = value.value
+          if status.name == "/CPU/cpu0":
+              for value in status.values:
+                  cpu0_status[value.key] = value.value
+          if status.name == "/CPU/cpu1":
+              for value in status.values:
+                  cpu1_status[value.key] = value.value
 
       #~ if (battery_status):
         #~ self._power_state_ctrl.set_power_state(battery_status)
@@ -297,6 +319,12 @@ class ElektronFrame(wx.Frame):
         self._power_state_ctrl_laptop.set_power_state(laptop_battery_status)
       else:
         self._power_state_ctrl_laptop.set_stale()
+        
+      if (cpu0_status):
+        self._cpu0_state.set_state(cpu0_status)
+      
+      if (cpu1_status):
+        self._cpu1_state.set_state(cpu1_status)
         
       if (wifi_status):
         self._wifi_state.set_wifi_state(wifi_status)
