@@ -61,6 +61,7 @@ from diagnostics_frame import DiagnosticsFrame
 from rosout_frame import RosoutFrame
 from cpu_frame import CpuFrame
 from mem_frame import MemFrame
+from main_power_control import MainPowerControl
 
 class ElektronFrame(wx.Frame):
     _CONFIG_WINDOW_X = "/Window/X"
@@ -175,6 +176,16 @@ class ElektronFrame(wx.Frame):
         self._power_state_ctrl_laptop = PowerStateControl(self, wx.ID_ANY, icons_path)
         self._power_state_ctrl_laptop.SetToolTip(wx.ToolTip("Laptop Battery: Stale"))
         static_sizer.Add(self._power_state_ctrl_laptop, 1, wx.EXPAND)
+        
+        
+        
+        # Laptop Battery State
+        static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Main power"), wx.HORIZONTAL)
+        sizer.Add(static_sizer, 0)
+        
+        self._main_power_ctrl = MainPowerControl(self, wx.ID_ANY, icons_path)
+        static_sizer.Add(self._main_power_ctrl, 1, wx.EXPAND)
+        
 
         self._config = wx.Config("elektron_dashboard")
 
@@ -293,6 +304,7 @@ class ElektronFrame(wx.Frame):
       cpu0_status = {}
       cpu1_status = {}
       mem_status = {}
+      main_power_status = {}
       op_mode = None
       for status in msg.status:
           if status.name == "/Power System/Battery":
@@ -320,6 +332,9 @@ class ElektronFrame(wx.Frame):
           if status.name == "/System/Memory":
               for value in status.values:
                   mem_status[value.key] = value.value
+          if status.name == "/Robot/Main Battery":
+              for value in status.values:
+                  main_power_status[value.key] = value.value
 
       #~ if (battery_status):
         #~ self._power_state_ctrl.set_power_state(battery_status)
@@ -339,6 +354,9 @@ class ElektronFrame(wx.Frame):
 
       if (mem_status):
         self._mem_state.set_state(mem_status)
+        
+      if (main_power_status):
+        self._main_power_ctrl.set_power_state(main_power_status)
                 
       if (wifi_status):
         self._wifi_state.set_wifi_state(wifi_status)
